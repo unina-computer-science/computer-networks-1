@@ -1,0 +1,9 @@
+container/cn1.conf
+container/test.log
+*.log
+
+# Safety net: no solution and no LaTeX source belongs in this repository.
+# If one day a .c file is meant to be published — a starting point for an
+# exercise — remove the line, do not force-add it.
+*.c
+*.tex

@@ -1,0 +1,23 @@
+#!/bin/bash
+# Starts a test FTP server in this container, to redo the capture of the
+# cleartext password from the lecture on cryptography (L30).
+# Creates the user "ftpuser" with password "reti2026".
+# A separate account on purpose: the image already has a "student" user,
+# whose home is /workspace, and FTP must not open that up.
+# Run it on the "server" host of the compose setup:  sudo start-ftp
+set -e
+if [ "$(id -u)" != 0 ]; then
+    echo "Needs root: sudo start-ftp" >&2
+    exit 1
+fi
+if ! id ftpuser >/dev/null 2>&1; then
+    useradd -m -s /bin/bash ftpuser
+    echo "ftpuser:reti2026" | chpasswd
+    echo "The test file for 'get'." > /home/ftpuser/report.txt
+    chown ftpuser:ftpuser /home/ftpuser/report.txt
+fi
+mkdir -p /var/run/vsftpd/empty
+pkill -x vsftpd 2>/dev/null || true
+/usr/sbin/vsftpd /etc/cn1/vsftpd.conf
+echo "vsftpd listening on port 21 of $(hostname)."
+echo "From the client:  ftp $(hostname)    (user ftpuser, password reti2026)"

@@ -1,0 +1,32 @@
+#!/bin/bash
+# Entrypoint of the CN1 container. Starts as root, realigns the "student"
+# user to the host user's UID/GID (so that files created in /workspace belong
+# to them), then drops privileges and runs the command.
+#
+# usermod is not used: it would change the owner of every file in the home,
+# which here is the host's folder. The two lines are rewritten by hand.
+set -e
+
+uid="${HOST_UID:-1000}"
+gid="${HOST_GID:-1000}"
+
+if [ "$(id -u)" = 0 ]; then
+    new_uid="$(id -u student)"
+    new_gid="$(id -g student)"
+    [ "$uid" != 0 ] && new_uid="$uid"
+    [ "$gid" != 0 ] && new_gid="$gid"
+
+    # The primary group. If the host uses a GID that already has a name in
+    # the image (NixOS: 100 = users; macOS: 20 = dialout), that group is
+    # used; otherwise the "student" group is moved to the new GID.
+    if [ "$new_gid" != "$(id -g student)" ] && ! getent group "$new_gid" >/dev/null; then
+        sed -i "s/^student:x:[0-9]*:/student:x:${new_gid}:/" /etc/group
+    fi
+    # UID and GID in /etc/passwd, each on its own.
+    sed -i "s/^student:x:[0-9]*:[0-9]*:/student:x:${new_uid}:${new_gid}:/" /etc/passwd
+
+    exec setpriv --reuid="$new_uid" --regid="$new_gid" --init-groups \
+        env HOME=/workspace USER=student LOGNAME=student "$@"
+fi
+
+exec "$@"

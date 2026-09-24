@@ -1,0 +1,89 @@
+#!/bin/bash
+# calisay - a cartoon with one of the lecturer's lines.
+#
+#   calisay "message"       prints the message
+#   echo message | calisay  reads from a pipe
+#   calisay                 a random line from messages.txt
+#
+# The lines live in a separate file, one per line: to add one, edit that
+# file. Empty lines and lines starting with # are ignored.
+# The file can be changed with CALISAY_MESSAGES=/path/messages.txt.
+
+MESSAGES="${CALISAY_MESSAGES:-/usr/local/share/calisay/messages.txt}"
+[ -f "$MESSAGES" ] || MESSAGES="$(dirname "$(readlink -f "$0")")/messages.txt"
+WIDTH=52
+set -f   # a * in the message stays a *, it does not glob
+
+msg=""
+if [ $# -gt 0 ]; then
+    msg="$*"
+elif [ ! -t 0 ]; then
+    msg="$(cat)"
+fi
+if [ -z "$msg" ]; then
+    if [ ! -r "$MESSAGES" ]; then
+        echo "calisay: $MESSAGES not found" >&2
+        exit 1
+    fi
+    msg="$(grep -v -e '^[[:space:]]*$' -e '^[[:space:]]*#' "$MESSAGES" | shuf -n 1)"
+fi
+
+# A \n inside the line is a deliberate break: what follows starts on a line
+# of its own, and is not reflowed with the rest.
+msg="${msg//\\n/$'\n'}"
+
+# Wrap on words. ${#word} counts characters, not bytes: with a UTF-8 locale
+# accented letters count as one.
+wrapped=()
+riga=""
+while IFS= read -r paragrafo || [ -n "$paragrafo" ]; do
+    for word in $paragrafo; do
+        if [ -z "$riga" ]; then
+            riga="$word"
+        elif [ $(( ${#riga} + 1 + ${#word} )) -le $WIDTH ]; then
+            riga="$riga $word"
+        else
+            wrapped+=("$riga")
+            riga="$word"
+        fi
+    done
+    [ -n "$riga" ] && wrapped+=("$riga")
+    riga=""
+done <<< "$msg"
+
+max=0
+for r in "${wrapped[@]}"; do
+    [ ${#r} -gt $max ] && max=${#r}
+done
+n=${#wrapped[@]}
+
+# The bubble: rounded corners; a single line sits between parentheses.
+bordo=$(printf '%*s' $((max + 2)) '' | tr ' ' '-')
+echo
+echo "  .$bordo."
+for i in "${!wrapped[@]}"; do
+    r="${wrapped[$i]}"
+    if [ "$n" -eq 1 ]; then          sx='('; dx=')'
+    elif [ "$i" -eq 0 ]; then        sx='/'; dx='\'
+    elif [ "$i" -eq $((n - 1)) ]; then sx='\'; dx='/'
+    else                             sx='|'; dx='|'
+    fi
+    printf ' %s  %s%*s  %s\n' "$sx" "$r" $((max - ${#r})) '' "$dx"
+done
+echo "  '$bordo'"
+cat <<'PROF'
+    \
+     \       .------.
+      \     /        \
+           |  -    -  |
+           | (o)--(o) |
+           |    ><    |
+           |   \__/   |
+            \        /
+             '------'
+          ____|    |____
+         /    \ \/ /    \
+        |      \  /      |
+        |       ||       |
+
+PROF

@@ -1,0 +1,10 @@
+#!/bin/sh
+# The course's Neovim. Configuration, plugins and parsers live in the image
+# (/opt/cn1/nvim), outside /workspace, which is mounted from the host and
+# would hide them. State and cache are per user and go with the container;
+# the undo history, which must survive, is in /workspace (see options.lua).
+export XDG_CONFIG_HOME=/opt/cn1/nvim/config
+export XDG_DATA_HOME=/opt/cn1/nvim/data
+export XDG_STATE_HOME="/tmp/cn1-nvim-$(id -u)/state"
+export XDG_CACHE_HOME="/tmp/cn1-nvim-$(id -u)/cache"
+exec /usr/bin/nvim "$@"

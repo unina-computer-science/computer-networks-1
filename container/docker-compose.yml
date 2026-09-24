@@ -1,0 +1,48 @@
+# Two hosts on the same network, for the project: client and server on
+# different addresses instead of both on 127.0.0.1.
+#
+#   ./run.sh lab       starts the two hosts
+#   ./run.sh server    a shell on host server   (192.168.26.17)
+#   ./run.sh client    a shell on host client   (192.168.26.23)
+#   ./run.sh stop      stops and removes them
+#
+# The addresses end like the ones in the sessions projected in class (.17 the
+# server, .23 the client). Both see the same /workspace: you compile once and
+# run on either side.
+name: cn1
+
+x-host: &host
+  image: ${CN1_IMAGE:-43616f73/cn1:2026.1}
+  init: true
+  cap_add: [NET_ADMIN]
+  command: ["sleep", "infinity"]
+  environment:
+    HOST_UID: ${HOST_UID:-1000}
+    HOST_GID: ${HOST_GID:-1000}
+    CN1_TEACHER: ${CN1_TEACHER:-}
+    CN1_WORKSPACE_HOST: ${CN1_WORKSPACE:?start it with ./run.sh lab}
+  volumes:
+    - ${CN1_WORKSPACE:?start it with ./run.sh lab}:/workspace
+
+services:
+  server:
+    <<: *host
+    hostname: server
+    networks:
+      lab:
+        ipv4_address: 192.168.26.17
+
+  client:
+    <<: *host
+    hostname: client
+    networks:
+      lab:
+        ipv4_address: 192.168.26.23
+
+networks:
+  lab:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.26.0/24
+          gateway: 192.168.26.1

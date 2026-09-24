@@ -1,0 +1,48 @@
+# /etc/cn1/bashrc - read by every interactive shell of the CN1 container.
+
+# Prompt: user@host:folder. The host name tells cn1, server and client apart.
+PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
+
+# The reminder that matters, at every shell. (The text is built in a
+# variable: an apostrophe inside ${...} between double quotes breaks bash.)
+if mountpoint -q /workspace 2>/dev/null; then
+    cn1_where=""
+    [ -n "${CN1_WORKSPACE_HOST:-}" ] && cn1_where=" = ${CN1_WORKSPACE_HOST} on the host"
+    printf '\e[2m%s\e[0m\n' "Your work is in /workspace${cn1_where}. Everything else disappears on exit."
+    unset cn1_where
+else
+    printf '\e[1;41m ATTENZIONE \e[0m \e[1;31m%s\e[0m\n' "/workspace is NOT mounted: everything you write will be lost."
+    printf '\e[1;31m%s\e[0m\n' "Exit and start again with ./run.sh, or with -v <folder>:/workspace."
+fi
+
+# calisay at startup: for the lecturer only (CN1_TEACHER=1 ./run.sh).
+if [ -n "${CN1_TEACHER:-}" ] && command -v calisay >/dev/null; then
+    calisay
+fi
+
+# guide: the tool pages, in /opt/cn1/docs. Not called "help", which is a
+# bash builtin.
+#   guide          the list
+#   guide dig      one page
+# Shown with bat, which colours the Markdown and pages it; without bat, less.
+guide() {
+    local d=/opt/cn1/docs pager
+    if [ ! -d "$d" ]; then
+        echo "guide: the pages are not in this image" >&2
+        return 1
+    fi
+    if command -v batcat > /dev/null 2>&1; then pager="batcat -l md --style=plain"
+    elif command -v bat  > /dev/null 2>&1; then pager="bat -l md --style=plain"
+    else                                       pager="less -R"
+    fi
+    if [ $# -eq 0 ]; then
+        $pager "$d/README.md"
+    elif [ -f "$d/$1.md" ]; then
+        $pager "$d/$1.md"
+    else
+        echo "guide: no page for '$1'. The ones there are:" >&2
+        (cd "$d" && ls *.md | sed 's/\.md$//' | grep -v '^README$' | tr '\n' ' ')
+        echo
+        return 1
+    fi
+}

@@ -1,0 +1,51 @@
+# cn1.conf — this machine's preferences.
+#
+# Copy this file next to run.sh and drop the ".example":
+#
+#     cp cn1.conf.example cn1.conf
+#
+# then uncomment the lines you need. The file does not go into git: everybody
+# has their own, with their own paths.
+#
+# What you pass on the command line always wins over what is here:
+#
+#     CN1_WORKSPACE=/another/folder ./run.sh
+#
+# Empty lines and lines starting with # are ignored.
+
+
+# --------------------------------------------------------------------------
+# CN1_WORKSPACE — the folder that appears as /workspace inside the container.
+#
+# Without this line it is ~/cn1-workspace, which is what students want: the
+# code stays outside, the container is throwaway.
+#
+# Whoever maintains the course points it at the root of the repository:
+# inside the container they then have slides/, exercises/, solutions/ and
+# tests/ at hand, open a solution with nvim and check it without copying
+# anything around.
+#
+# CN1_WORKSPACE=~/courses/cn1
+
+
+# --------------------------------------------------------------------------
+# CN1_TEACHER — calisay at every shell.
+#
+# CN1_TEACHER=1
+
+
+# --------------------------------------------------------------------------
+# CN1_IMAGE — the name of the image to use.
+#
+# Useful to try two side by side: build with "docker build -t cn1-test ."
+# and put the name here. Without this line it is "cn1".
+#
+# CN1_IMAGE=cn1
+
+
+# --------------------------------------------------------------------------
+# PORTS — container ports published towards your own machine, separated by
+# spaces. Needed when you want to reach a server running inside from the
+# browser on the host.
+#
+# PORTS="8080 5000"

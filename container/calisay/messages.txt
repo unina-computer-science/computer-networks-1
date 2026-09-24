@@ -1,0 +1,14 @@
+# calisay messages: one per line. Lines starting with # are comments, empty
+# lines are ignored. To add one, just write it here.
+# A \n inside a line is a deliberate break: what follows starts on a line of
+# its own.
+
+Non uso Windows dal '98
+Non dite che cominciamo le lezioni in ritardo, noi iniziamo con una pausa!
+Lo sanno tutti che gli studenti devono andare ad aria
+Andiamo a farci un panino bel col prosciutto!
+Se non vi sta bene soffrite in silenzio, il professore sono io e decido io
+La didattica e' come il maiale, non si butta via niente
+Qualcuno vuole lamentarsi? Un voto in meno all'esame
+Quella volta in cui un mio amico tento' un colpo di stato in Africa...
+Aiuto, sono stato hackerato. E' il CAOS.\nUn punto in piu' a chi lo indovina:\n10 20 23 26 37 28 6f 37 22 61 0c 32 2c 32
