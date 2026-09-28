@@ -69,9 +69,25 @@ sudo pacman -S docker-compose           # Arch
 docker pull 43616f73/cn1:2026.1
 ```
 
-About a gigabyte, downloaded once. **Do it at home, before the first lab
-session**: thirty people pulling at the same time over the university network
-is slow for everybody.
+About 400 MB, or 1.2 GB on a Mac with Apple Silicon, downloaded once. **Do it
+at home, before the first lab session**: thirty people pulling at the same
+time over the university network is slow for everybody.
+
+### If the download stops halfway
+
+On Windows a large `docker pull` can die with
+
+    failed to copy: httpReadSeeker: failed open: ... EOF
+
+and start again from nothing the next time. Small images come down fine, big
+ones do not. Recent versions of Docker Desktop (seen on 4.50) fetch images
+through containerd, which gives up when a transfer is interrupted rather than
+retrying it; anything that cuts long connections — a tired line, an antivirus
+that inspects HTTPS — is then enough to put a 400 MB image out of reach.
+
+Settings → General → turn off **Use containerd for pulling and storing
+images**, then Apply & restart, and pull again. The older downloader retries,
+and gets there.
 
 ## 4. Start it
 
