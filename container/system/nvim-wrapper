@@ -1,10 +1,27 @@
 #!/bin/sh
 # The course's Neovim. Configuration, plugins and parsers live in the image
 # (/opt/cn1/nvim), outside /workspace, which is mounted from the host and
-# would hide them. State and cache are per user and go with the container;
-# the undo history, which must survive, is in /workspace (see options.lua).
+# would hide them. They belong to root and are read-only for the student, so
+# XDG_DATA_HOME cannot point there: plugins write their own state under it --
+# telescope's search history, for one -- and would fail. It points at a
+# writable directory under /tmp instead, and the two trees that come from the
+# build are linked into it. Both links are needed: lazy looks for the plugins
+# in stdpath("data")/lazy, and the runtimepath includes stdpath("data")/site.
+# The directory is named after the user id so that a root nvim, through sudo,
+# cannot leave files there that the student is then unable to write.
+# State and cache are per user and go with the container; the undo history,
+# which must survive, is in /workspace (see options.lua).
+IMAGE=/opt/cn1/nvim/data/nvim
+RUNTIME=/tmp/cn1-nvim-$(id -u)
+
+mkdir -p "$RUNTIME/data/nvim"
+for tree in lazy site; do
+    [ -e "$RUNTIME/data/nvim/$tree" ] \
+        || ln -s "$IMAGE/$tree" "$RUNTIME/data/nvim/$tree"
+done
+
 export XDG_CONFIG_HOME=/opt/cn1/nvim/config
-export XDG_DATA_HOME=/opt/cn1/nvim/data
-export XDG_STATE_HOME="/tmp/cn1-nvim-$(id -u)/state"
-export XDG_CACHE_HOME="/tmp/cn1-nvim-$(id -u)/cache"
+export XDG_DATA_HOME="$RUNTIME/data"
+export XDG_STATE_HOME="$RUNTIME/state"
+export XDG_CACHE_HOME="$RUNTIME/cache"
 exec /usr/bin/nvim "$@"

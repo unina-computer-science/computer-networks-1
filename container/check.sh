@@ -4,9 +4,9 @@
 #
 #      ./check.sh
 #
-#  Ten checks, about half a minute: the compiler, the tools the course uses,
-#  the capture, and that a file saved in /workspace really lands on your own
-#  machine. Nothing here needs the Internet.
+#  Eleven checks, about half a minute: the compiler, the tools the course
+#  uses, the capture, the editor, and that a file saved in /workspace really
+#  lands on your own machine. Nothing here needs the Internet.
 #
 #  If they all pass, the environment is fine and any problem is in the code.
 # ===========================================================================
@@ -95,8 +95,8 @@ else
 fi
 
 # --- 4. the tools ----------------------------------------------------------
-attesi="gcc make gdb valgrind nvim dig ip ss ping traceroute nc curl wget nmap ftp lynx tshark tcpdump nft"
-out=$(inside bash -c "for c in $attesi; do command -v \$c > /dev/null || echo MISSING=\$c; done; echo TOOLS_DONE")
+expected="gcc make gdb valgrind nvim dig ip ss ping traceroute nc curl wget nmap ftp lynx tshark tcpdump nft"
+out=$(inside bash -c "for c in $expected; do command -v \$c > /dev/null || echo MISSING=\$c; done; echo TOOLS_DONE")
 missing=$(printf '%s' "$out" | grep -o 'MISSING=[a-z]*' | sed 's/MISSING=//' | tr '\n' ' ')
 if [ -z "$missing" ]; then
     ok "every tool the course uses is there"
@@ -121,6 +121,22 @@ if printf '%s' "$out" | grep -q 'NVIM_RC=0'; then
     ok "the editor starts with no errors"
 else
     ko "nvim reports errors at startup" "$(printf '%s' "$out" | head -3)"
+fi
+
+# The editor writes its own state (the search history and the like) outside
+# the image, which is read-only, and finds the parsers inside it. Both go
+# through the XDG variables set by the nvim wrapper: this is the check that
+# tells whether that arrangement still holds.
+out=$(inside bash -c 'printf "int main(void) { return 0; }\n" > /tmp/probe.c
+    nvim --headless /tmp/probe.c \
+        -c "lua local p = vim.fn.stdpath(\"data\") .. \"/.cn1-probe\"; local f = io.open(p, \"w\"); if f then f:close(); os.remove(p); print(\"WRITE_OK\") end" \
+        -c "lua local got, parser = pcall(vim.treesitter.get_parser, 0); if got and parser then print(\"PARSER_\" .. parser:lang()) end" \
+        -c qa 2>&1')
+if printf '%s' "$out" | grep -q WRITE_OK && printf '%s' "$out" | grep -q PARSER_c; then
+    ok "the editor writes its own state and finds the C parser"
+else
+    ko "the editor cannot write its state, or does not find the parser" \
+       "$(printf '%s' "$out" | head -3)"
 fi
 
 echo

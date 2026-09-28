@@ -108,7 +108,7 @@ To use a different folder, or to set your preferences once, copy
 ./check.sh
 ```
 
-Ten checks, half a minute: the compiler, the network tools, the capture, and
+Eleven checks, half a minute: the compiler, the network tools, the capture, and
 that a file saved in `/workspace` really ends up on your machine. If they all
 pass, your environment is fine.
 

@@ -153,13 +153,19 @@ there, select with the mouse.
 Pasting *into* Neovim from outside is the terminal's job, not Neovim's:
 Ctrl-Shift-V or middle click, depending on your terminal.
 
-## Two things that will confuse you once
+## Three things that will confuse you once
 
 - **Squares instead of icons** — your terminal is missing a Nerd Font. It is
   a font problem on your machine, not a container one.
 - **Your changes to the configuration disappear.** The configuration lives in
   the image, in /opt/cn1/nvim, and the container is thrown away every time.
   To change it for good, change it in the repository and rebuild the image.
+  For the same reason :Lazy cannot install or update plugins: they are fixed
+  when the image is built, so that the editor works with no network at all.
+- **Your searches start over every time.** What telescope remembers of your
+  last searches, and the marks that take you back where you were, live in the
+  container and go away with it. The undo history is the one exception: that
+  is in /workspace, on your machine.
 
 ## More
 

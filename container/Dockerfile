@@ -40,7 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # clients and diagnostics: L03-L08, L12-L15, L18-L19, L22-L23, L28, E1-E4
         netcat-openbsd curl wget ca-certificates bind9-dnsutils \
         iputils-ping traceroute iproute2 net-tools tnftp lynx nmap \
-    # sessioni delle ultime lezioni: FTP (L30), firewall (L31), Tor (L32)
+    # sessions of the last lectures: FTP (L30), firewall (L31), Tor (L32)
         vsftpd conntrack nftables tor torsocks \
     # system: processes (L09-L12, E4.30), privileges, man pages, shell
         procps sudo less bash-completion \
@@ -67,22 +67,32 @@ RUN (userdel -r ubuntu 2>/dev/null || true) \
 
 # -----------------------------------------------------------------------------
 #  Neovim. Configuration, plugins and parsers live in /opt/cn1/nvim, OUTSIDE
-#  /workspace: the host mount would hide them. The wrapper in
-#  /usr/local/bin/nvim points the XDG variables there, for nvim only.
-#  Everything is downloaded and built here, at build time: the container
-#  starts offline.
+#  /workspace: the host mount would hide them. Everything is downloaded and
+#  built here, at build time: the container starts offline.
+#  The build writes into /opt/cn1/nvim as root, so it calls /usr/bin/nvim with
+#  the variables set right here. At run time the wrapper in /usr/local/bin/nvim
+#  sets them differently, because what is built here is read-only for the
+#  student: see the comment in system/nvim-wrapper.
+#  The fifth parser, query, is the language of treesitter's own queries: it is
+#  what :InspectTree opens its window with.
 # -----------------------------------------------------------------------------
 COPY nvim/ /opt/cn1/nvim/config/nvim/
 COPY system/nvim-wrapper /usr/local/bin/nvim
 RUN chmod 0755 /usr/local/bin/nvim \
- && nvim --headless "+Lazy! sync" +qa \
- && nvim --headless \
-        -c "lua require('nvim-treesitter').install({ 'c', 'bash', 'make', 'lua' }):wait(300000)" \
+ && export XDG_CONFIG_HOME=/opt/cn1/nvim/config \
+           XDG_DATA_HOME=/opt/cn1/nvim/data \
+           XDG_STATE_HOME=/tmp/nvim-build/state \
+           XDG_CACHE_HOME=/tmp/nvim-build/cache \
+ && /usr/bin/nvim --headless "+Lazy! sync" +qa \
+ && /usr/bin/nvim --headless \
+        -c "lua require('nvim-treesitter').install({ 'c', 'bash', 'make', 'lua', 'query' }):wait(300000)" \
         -c qa \
  && test -f /opt/cn1/nvim/data/nvim/site/parser/c.so \
  && test -f /opt/cn1/nvim/data/nvim/site/parser/bash.so \
  && test -f /opt/cn1/nvim/data/nvim/site/parser/make.so \
  && test -f /opt/cn1/nvim/data/nvim/site/parser/lua.so \
+ && test -f /opt/cn1/nvim/data/nvim/site/parser/query.so \
+ && rm -rf /tmp/nvim-build \
  && chmod -R a+rX /opt/cn1/nvim
 
 # -----------------------------------------------------------------------------
