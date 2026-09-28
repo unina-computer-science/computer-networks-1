@@ -13,23 +13,8 @@ gid="${HOST_GID:-1000}"
 if [ "$(id -u)" = 0 ]; then
     new_uid="$(id -u student)"
     new_gid="$(id -g student)"
-    [ "$uid" != 0 ] && new_uid="$uid" || true
-    [ "$gid" != 0 ] && new_gid="$gid" || true
-
-    # Docker Desktop on Windows does not carry POSIX ownership across the
-    # mount: it shows /workspace with an owner of its own, and only that
-    # owner may write there. Realigning the user would therefore take away
-    # the student's right to write in their own home -- exactly what the
-    # realignment exists to protect. Git Bash also reports a UID that means
-    # nothing on Linux (197609), which is how this surfaced.
-    # So the realignment is applied only if the new user could really write
-    # there. On Linux the test always succeeds and nothing changes.
-    if ! setpriv --reuid="$new_uid" --regid="$new_gid" --clear-groups \
-            /bin/sh -c 'touch /workspace/.cn1-uid-probe 2>/dev/null \
-                        && rm -f /workspace/.cn1-uid-probe' 2>/dev/null; then
-        new_uid="$(id -u student)"
-        new_gid="$(id -g student)"
-    fi
+    [ "$uid" != 0 ] && new_uid="$uid"
+    [ "$gid" != 0 ] && new_gid="$gid"
 
     # The primary group. If the host uses a GID that already has a name in
     # the image (NixOS: 100 = users; macOS: 20 = dialout), that group is
