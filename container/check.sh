@@ -15,6 +15,19 @@ set -u
 cd "$(dirname "$0")"
 IMG="${CN1_IMAGE:-43616f73/cn1:2026.1}"
 WS="${CN1_WORKSPACE:-$HOME/cn1-workspace}"
+mkdir -p "$WS"
+
+# Git Bash on Windows: without this, Docker is handed /c/Users/... and reads
+# it as a path inside its own virtual machine, so the folder never reaches
+# the user's computer and the check below fails for the wrong reason.
+# Same block as in run.sh.
+WS_DOCKER="$WS"
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+        export MSYS_NO_PATHCONV=1
+        WS_DOCKER="$(cygpath -w "$WS")"
+        ;;
+esac
 
 pass=0; fail=0
 green() { printf '\033[32m%s\033[0m' "$1"; }
@@ -24,7 +37,7 @@ ko() { printf '  %s  %s\n' "$(red FAIL)" "$1"; [ -n "${2:-}" ] && printf '      
 
 inside() { docker run --rm -i --init --cap-add NET_ADMIN \
              -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
-             -v "$WS:/workspace" "$IMG" "$@" 2>&1 </dev/null; }
+             -v "$WS_DOCKER:/workspace" "$IMG" "$@" 2>&1 </dev/null; }
 
 echo
 echo "Environment check"
@@ -59,7 +72,6 @@ else
 fi
 
 # --- 2. the workspace ------------------------------------------------------
-mkdir -p "$WS"
 out=$(inside bash -c 'echo hello > /workspace/.cn1-check; echo INSIDE_OK')
 if [ -f "$WS/.cn1-check" ] && [ "$(cat "$WS/.cn1-check")" = hello ]; then
     ok "a file written in /workspace lands on your machine"

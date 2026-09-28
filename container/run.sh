@@ -58,7 +58,7 @@ WS="$(cd "$WS" && pwd)"
 # (Empty arrays are expanded as ${a[@]+"${a[@]}"}: the bash 3.2 on macOS,
 #  with set -u, would stop otherwise.)
 
-# Git Bash su Windows: senza questo, /workspace diventerebbe
+# Git Bash on Windows: without this, /workspace would become
 # C:/Program Files/Git/workspace.
 WS_DOCKER="$WS"
 case "$(uname -s)" in
