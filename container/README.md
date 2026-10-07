@@ -148,11 +148,42 @@ including how to quit. Anybody who prefers another editor uses it on their own
 machine, in `~/cn1-workspace`, and comes to the container only to compile and
 run.
 
+### A second terminal
+
+Almost every exercise has a server and a client, so sooner or later you need
+two shells at once.
+
+The quick way, without leaving the shell you are in: put the server in the
+background, run the client, and stop the server when you are done.
+
+```bash
+./server 5000 &
+./client 127.0.0.1 5000
+kill %1
+```
+
+The other way gives you two real terminals, and it is the one section 6
+describes: `./run.sh lab` starts two hosts, then `./run.sh server` and
+`./run.sh client` open a shell on each. Either of those two commands can be
+run as many times as you like — every `./run.sh server` is another shell on
+the *same* host — so two of them give you two terminals on one machine, if
+that is what the exercise wants. It needs Docker Compose (section 2).
+
+What does **not** work is opening a second terminal and typing `./run.sh`
+again. That starts a second container, with a network of its own: two programs
+started that way do not find each other on `127.0.0.1`.
+
+If you already know Docker: a second shell on a running container is
+`docker exec`. The container that `./run.sh` starts has no fixed name, so you
+would first have to find its id with `docker ps`. `./run.sh server` does
+exactly that, on the lab hosts, without the lookup.
+
 ## 6. Two hosts for the project
 
-This is for the course project, where client and server have to live on
-different machines; the project itself is published later on. Until then it is
-still worth trying, with `nc` on one side and the other.
+These two hosts are what the course project needs, where client and server
+have to live on different machines; the project itself is published later on.
+They are also the simplest way to get two shells for any other exercise, and
+they are worth trying right away, with `nc` on one side and the other.
 
 The chat is more instructive when client and server are two machines with two
 addresses, rather than both on `127.0.0.1`:
@@ -173,6 +204,11 @@ client$ ./chat server 5000
 
 On this network the MTU is 1500, so a 3000-byte UDP datagram really does
 fragment, unlike on loopback.
+
+There is one mistake that only shows up here: a server that binds `127.0.0.1`
+instead of listening on every address works perfectly well when client and
+server are the same machine, and cannot be reached at all from the other
+host.
 
 ## 7. Capturing traffic
 
