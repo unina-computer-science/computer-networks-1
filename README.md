@@ -1,8 +1,8 @@
-# Computer Networks I
+# Computer Networks and Distributed Programming
 
-Course material for **Computer Networks I**, degree course in Computer
+Course material for **Computer Networks and Distributed Programming**, degree course in Computer
 Science, Università degli Studi di Napoli Federico II — academic year
-2026/27. Lecturer: Andrea Calì.
+2026/27. Lecturer: Andrea Calí.
 
 | | |
 |---|---|
@@ -10,8 +10,7 @@ Science, Università degli Studi di Napoli Federico II — academic year
 | [`container/`](container/) | the lab environment: one image with every tool the course uses |
 
 The `container/` folder is complete from the start: you can set up the
-environment right away. Slides and exercises are published as the course goes
-on.
+environment right away. Slides and exercises are in the `slides/` folder.
 
 ## The slides
 
@@ -30,4 +29,4 @@ there the list of what to install instead.
 
 ---
 
-Università degli Studi di Napoli Federico II — Computer Science
+Università degli Studî di Napoli Federico II — Computer Science
